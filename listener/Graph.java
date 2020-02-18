@@ -1,18 +1,18 @@
 /*
   ===========================================================================================
-  This Graph class handles an individual graph being displayed on the Arduino Plotter 
+  This Graph class handles an individual graph being displayed on the Arduino Plotter
   listener.
   -------------------------------------------------------------------------------------------
-  The library stores and handles all relevant graph information and variable references, 
+  The library stores and handles all relevant graph information and variable references,
   and transfers information via the serial port to a listener program written with the
   software provided by Processing. No modification is needed to this program; graph placement,
-  axis-scaling, etc. are handled automatically. 
-  Multiple options for this listener are available including stand-alone applications as well 
+  axis-scaling, etc. are handled automatically.
+  Multiple options for this listener are available including stand-alone applications as well
   as the source Processing script.
 
-  The library, these listeners, a quick-start guide, documentation, and usage examples are 
+  The library, these listeners, a quick-start guide, documentation, and usage examples are
   available at:
-  
+
   https://github.com/devinaconley/arduino-plotter
 
   -------------------------------------------------------------------------------------------
@@ -30,13 +30,13 @@ class Graph
 {
     // Reference to PApplet drawing canvas
     PApplet parent;
-    
+
     // Config
     float posY;
     float posX;
     float height;
     float width;
-    
+
     boolean xvy; // ( alternative is vs time )
     int numVars;
     int maxPoints;
@@ -67,9 +67,9 @@ class Graph
 	this.title = title;
 	this.labels = labels;
 	this.colors = colors;
-	
+
 	// this.parent.println( "Constructed new graph: ", this.title, " at ", this.posY, " ", this.posX );
-	
+
 	// Initialize
 	this.index = 0;
 	this.data = new double[maxPoints][numVars][2];
@@ -91,9 +91,9 @@ class Graph
 	this.numVars = numVars;
 	this.maxPoints = maxPoints;
 	this.title = title;
-	this.labels = labels;	
+	this.labels = labels;
     }
-    
+
     public void Reconfigure( float posY, float posX, float height, float width )
     {
 	this.posY = posY;
@@ -101,7 +101,7 @@ class Graph
 	this.height = height;
 	this.width = width;
     }
-    
+
     public void Update( double[] newData, int time )
     {
 	// Store data
@@ -110,10 +110,10 @@ class Graph
 	    // Validate
 	    if ( newData.length != 2 )
 	    {
-		//this.parent.println( "Invalid data passed to X v. Y graph." );
+		// this.parent.println( "Invalid data passed to X v. Y graph." );
 		return;
 	    }
-	    
+
 	    this.data[this.index][0][0] = newData[0];
 	    this.data[this.index][0][1] = newData[1];
 	}
@@ -122,7 +122,7 @@ class Graph
 	    // Validate
 	    if ( newData.length != this.numVars )
 	    {
-		//this.parent.println( "Invalid data passed to time graph." );
+		// this.parent.println( "Invalid data passed to time graph." );
 		return;
 	    }
 
@@ -138,7 +138,7 @@ class Graph
 	{
 	    this.currPoints++;
 	}
-	
+
 	// Check extremes
 	this.CheckExtremes();
 
@@ -164,12 +164,14 @@ class Graph
 	this.parent.textAlign( this.parent.CENTER, this.parent.TOP );
 	this.parent.text( this.title, this.posX + this.width / 2, this.posY + 10 );
 
-	
+
 	// Calculations for offset and scaling of graph ( vs. time )
 	double xScale = this.width / ( this.extremes[1] - this.extremes[0] );
 	double xOffset = xScale * this.extremes[0];
 	double yScale = AXIS_COV * this.height / ( this.extremes[3] - this.extremes[2] );
 	double yOffset = yScale * this.extremes[3] + 0.5 * ( 1.0 - AXIS_COV ) * this.height;
+
+  // this.parent.println("Data", AXIS_COV, this.height, this.extremes[2], this.extremes[3], yScale);
 
 	// Modify scaling and offset
 	if ( this.xvy )
@@ -178,8 +180,10 @@ class Graph
 	    xOffset = xScale * this.extremes[0] - 0.5 * ( 1.0 - AXIS_COV ) * this.width;
 	}
 
-	
+
         // Do actual data plotting
+  if ( this.currPoints < this.maxPoints ) // Not yet
+
 	for ( int i = 0; i < this.numVars; i++ )
 	{
 	    this.parent.stroke( this.colors[i] );
@@ -187,13 +191,39 @@ class Graph
 	    {
 		this.parent.point( (float)(this.posX + (this.data[j][i][0]*xScale - xOffset)),
 				   (float)(this.posY + yOffset - data[j][i][1]*yScale) );
+           // this.parent.println("Data", this.data[j][i][0], this.data[j][i][1]);
+           // this.parent.println("Data -1", yOffset, yScale);
 	    }
-	}	
-	
+	}
+
+  else // 2 YES, roll-back did start continuous plotting must be done in two halves
+
+{
+for ( int i = 0; i < this.numVars; i++ )
+{
+this.parent.stroke( this.colors[i] );
+for ( int j = this.index ; j < this.maxPoints-1; j++ )
+{
+this.parent.line( (float)(this.posX + (this.data[j][i][0]*xScale - xOffset)), (float)(this.posY + yOffset - data[j][i][1]*yScale),
+(float)(this.posX + (this.data[j+1][i][0]*xScale - xOffset)), (float)(this.posY + yOffset - data[j+1][i][1]*yScale) );
+}
+}
+for ( int i = 0; i < this.numVars; i++ )
+{
+this.parent.stroke( this.colors[i] );
+for ( int j = 0; j < this.index-1; j++ )
+{
+this.parent.line( (float)(this.posX + (this.data[j][i][0]*xScale - xOffset)), (float)(this.posY + yOffset - data[j][i][1]*yScale),
+(float)(this.posX + (this.data[j+1][i][0]*xScale - xOffset)), (float)(this.posY + yOffset - data[j+1][i][1]*yScale) );
+}
+}
+
+}
+
 	// X vs Y and vs Time specific stuff
 	if ( this.xvy )
 	{
-	    this.DrawXYStuff();	    
+	    this.DrawXYStuff();
 	}
 	else
 	{
@@ -202,15 +232,15 @@ class Graph
 
 	// Draw Ticks
 	this.DrawTicks( xScale, xOffset, yScale, yOffset );
-	
+
     }
 
     // Private Helpers
-    
+
     private void DrawTimeStuff()
     {
 	int labelSz = (int) ( (this.width + this.height) / 2.0f * LABEL_SZ );
-	
+
 	// Setup legend start
 	float textPos = this.posY + labelSz;
 	this.parent.textAlign( this.parent.RIGHT, this.parent.TOP );
@@ -249,7 +279,7 @@ class Graph
 
 	// Draw ticks along y-axis
 	float tempX = this.posX - TICK_LEN / 2;
-	float tickOffset = 0.5f * ( 1.0f - AXIS_COV ) * this.height; 
+	float tickOffset = 0.5f * ( 1.0f - AXIS_COV ) * this.height;
 	float tickInterval = AXIS_COV * this.height / (NUM_TICKS - 1);
 	for ( float tempY = this.posY + tickOffset; tempY <= this.posY + this.height - tickOffset;
 	     tempY += tickInterval )
@@ -263,12 +293,12 @@ class Graph
 	// x-axis
 	this.parent.textAlign( this.parent.CENTER, this.parent.BOTTOM );
 	float tempY = this.posY + this.height - TICK_LEN / 2;
-	tickOffset = 0.5f * ( 1.0f - AXIS_COV ) * this.width; 
+	tickOffset = 0.5f * ( 1.0f - AXIS_COV ) * this.width;
 	tickInterval = AXIS_COV * this.width / (NUM_TICKS - 1);
 	for ( tempX = this.posX + tickOffset; tempX <= this.posX + this.width - tickOffset;
 	     tempX += tickInterval )
 	{
-	    float val = (float) ( ( (double)tempX + xOffset - this.posX ) / xScale ); 
+	    float val = (float) ( ( (double)tempX + xOffset - this.posX ) / xScale );
 	    this.parent.line( tempX, tempY, tempX, tempY + TICK_LEN );
 	    if ( this.xvy )
 	    {
@@ -277,16 +307,16 @@ class Graph
 	    }
 	    else
 	    {
-		this.parent.text( String.format( "%d", (int)val ), tempX, tempY - 5 );		
+		this.parent.text( String.format( "%d", (int)val ), tempX, tempY - 5 );
 	    }
-	}	
-	
+	}
+
     }
 
     private String GetNumberFormat( float value )
-    {      
+    {
 	int n = SIG_DIGITS;
-	int d = 1;	
+	int d = 1;
 	while ( n > 0 && Math.round( Math.abs( value / d ) ) > 0 )
 	{
 	    n--;
@@ -309,7 +339,7 @@ class Graph
     {
 	// Check new values
 	this.CompareToExtremes( this.index );
-	
+
 	// Time extremes
 	if ( ! this.xvy )
 	{
@@ -319,7 +349,7 @@ class Graph
 	    {
 		oldest = 0;
 	    }
-	    
+
 	    if ( this.currPoints < this.maxPoints )
 	    {
 		// Estimate lower extreme
@@ -336,7 +366,7 @@ class Graph
 	    this.extremes[1] = this.data[this.index][0][0];
 	    this.extremesCounter[1] = 0;
 	}
-	
+
         // Check for extremes going out of scope
 	boolean recalc = false;
 	for ( int i = 0; i < 4; i++ )
@@ -344,14 +374,18 @@ class Graph
 	    this.extremesCounter[i]++;
 	    recalc |= this.extremesCounter[i] > this.maxPoints;
 	}
-	
+
 	if ( ! recalc )
 	{
+    if (this.extremes[2] == this.extremes[3]) {
+      this.extremes[2] = this.extremes[2] -1;
+      this.extremes[3] = this.extremes[3] +1;
+    }
 	    return;
 	}
 
 	// this.parent.println("Recalculating extremes...");
-	
+
 	// Full re-calculation for new extremes
 	if ( this.xvy )
 	{
@@ -364,17 +398,23 @@ class Graph
 	this.extremesCounter[2] = 0;
 	this.extremes[3] = this.data[0][0][1]; // (y-max)
 	this.extremesCounter[3] = 0;
-	
+
 	for ( int i = 0; i < this.currPoints; i++ )
 	{
 	    this.CompareToExtremes( i );
 	}
+
+    if (this.extremes[2] == this.extremes[3]) {
+      this.extremes[2] = this.extremes[2] -1;
+      this.extremes[3] = this.extremes[3] +1;
+    }
+
     }
 
     private void CompareToExtremes( int i ) // i : dataIndex
-    {		
+    {
 	for ( int j = 0; j < this.numVars; j++ )
-	{			
+	{
 	    // Y max/min
 	    if ( this.data[i][j][1] < this.extremes[2] ) // (min)
 	    {
@@ -401,7 +441,7 @@ class Graph
 		}
 	    }
 	}
-    }    
+    }
 
     // Constants
     private static final float AXIS_COV = 0.75f;
