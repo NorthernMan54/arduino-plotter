@@ -250,7 +250,7 @@ this.parent.line( (float)(this.posX + (this.data[j][i][0]*xScale - xOffset)), (f
 	for ( int i = 0; i < this.numVars; i++ )
 	{
 	    this.parent.fill( this.colors[i] );
-	    this.parent.text( this.labels[i], this.posX + this.width - 10, textPos);
+	    this.parent.text((this.labels[i] + ": " + Double.toString(this.data[this.index-1][i][1])), this.posX + this.width - 10, textPos);
 	    textPos += ( labelSz + labelSz/4 );
 	    this.parent.stroke( this.colors[i] );
 	}

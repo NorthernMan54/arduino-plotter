@@ -40,7 +40,7 @@ void setup()
 
     // Set the gain (PGA) +/- 6.144V
     // Note that any analog input must be higher than –0.3V and less than VDD +0.3
-    adc0.setGain(ADS1115_PGA_4P096);
+    adc0.setGain(ADS1115_PGA_6P144);
     // ALERT/RDY pin will indicate when conversion is ready
 
     // pinMode(alertReadyPin,INPUT_PULLUP);
@@ -52,7 +52,7 @@ void loop() {
     x = 10*sin( 2.0*PI*( millis() / 5000.0 ) );
     */
 
-    // x = analogRead(A0)/1024 * 3.3;
+    // a0 = analogRead(A0)/1024 * 3.3;
     // a0 = adc0.getMilliVolts(true);
     //  // usually called within loop()
     // The below method sets the mux and gets a reading.
@@ -60,26 +60,26 @@ void loop() {
     a0 = adc0.getMilliVolts(true)/1000;
     // adc0.triggerConversion();
     // pollAlertReadyPin();
-    //Serial.print("A0: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV\t");
+    // Serial.print("A0: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV\t");
 
     adc0.setMultiplexer(ADS1115_MUX_P1_NG);
     a1 = adc0.getMilliVolts(true)/1000;
     // adc0.triggerConversion();
     // pollAlertReadyPin();
-    //Serial.print("A1: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV\t");
+    // Serial.print("A1: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV\t");
 
     adc0.setMultiplexer(ADS1115_MUX_P2_NG);
     a2 = adc0.getMilliVolts(true)/1000;
     // adc0.triggerConversion();
     // pollAlertReadyPin();
-    //Serial.print("A2: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV\t");
+    // Serial.print("A2: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV\t");
 
     adc0.setMultiplexer(ADS1115_MUX_P3_NG);
     a3 = adc0.getMilliVolts(true)/1000;
     // Do conversion polling via I2C on this last reading:
-    //Serial.print("A3: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV");
+    // Serial.print("A3: "); Serial.print(adc0.getMilliVolts(true)); Serial.print("mV");
 
-    //Serial.println();
+    // Serial.println();
     //delay(500);
     p.Plot();
 }
