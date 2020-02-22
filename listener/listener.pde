@@ -1,19 +1,19 @@
 /*
   ===========================================================================================
-  This listener is the main processing script that corresponds to the Arduino Plotter 
-  library for Arduino. This driver script handles serial port information and manages a 
-  set of Graph objects to do the actual plotting. 
+  This listener is the main processing script that corresponds to the Arduino Plotter
+  library for Arduino. This driver script handles serial port information and manages a
+  set of Graph objects to do the actual plotting.
   -------------------------------------------------------------------------------------------
-  The library stores and handles all relevant graph information and variable references, 
+  The library stores and handles all relevant graph information and variable references,
   and transfers information via the serial port to a listener program written with the
   software provided by Processing. No modification is needed to this program; graph placement,
-  axis-scaling, etc. are handled automatically. 
-  Multiple options for this listener are available including stand-alone applications as well 
+  axis-scaling, etc. are handled automatically.
+  Multiple options for this listener are available including stand-alone applications as well
   as the source Processing script.
 
-  The library, these listeners, a quick-start guide, documentation, and usage examples are 
+  The library, these listeners, a quick-start guide, documentation, and usage examples are
   available at:
-  
+
   https://github.com/devinaconley/arduino-plotter
 
   -------------------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ final int BAUD_RATE = 115200;
 final HashMap<String, Integer> COLORMAP = new HashMap<String, Integer>()
 {
     {
-	put( "red", color( 255, 0, 0 ) );
+	put( "red", color( 253, 100, 100 ) );
 	put( "green", color( 0, 255, 0 ) );
 	put( "blue", color( 0, 0, 255 ) );
 	put( "orange", color( 255, 153, 51 ) );
@@ -55,6 +55,7 @@ final HashMap<String, Integer> COLORMAP = new HashMap<String, Integer>()
 	put( "pink", color( 255, 51, 204 ) );
 	put( "purple", color( 172, 0, 230 ) );
 	put( "cyan", color( 0, 255, 255 ) );
+  put( "white", color( 255, 255, 255 ) );
     }
 };
 
@@ -79,11 +80,11 @@ void setup()
     h = height;
     w = width;
     frameRate( 100 );
-    
+
     // Serial comms
     while ( Serial.list().length < 1 )
     {
-	text( "No serial ports available. Waiting...", 20, 20 );	
+	text( "No serial ports available. Waiting...", 20, 20 );
 	delay( 100 );
     }
     portIndex = 0;
@@ -97,9 +98,9 @@ void draw()
     try
     {
 	background( BG_COL );
-	
+
 	if ( configured )
-	{	    
+	{
 	    for( int i = 0; i < graphs.size(); i++ )
 	    {
 		graphs.get(i).Plot();
@@ -109,18 +110,18 @@ void draw()
 	{
             // Continue to scan ports if not configuring
 	    text( "Scanning serial ports... (" + Serial.list()[portIndex] + ")", 20, 20 );
-	    
+
 	    if ( millis() - lastPortSwitch > PORT_INTERVAL )
-	    {	// Go to next port		
+	    {	// Go to next port
 		portIndex++;
 		if ( portIndex >= Serial.list().length )
 		{
 		    portIndex = 0;
 		}
-		
+
 		logMessage( "Trying next port... index: " + portIndex + ", name: " + Serial.list()[portIndex],
 			    true );
-		
+
 		attemptConnect( portIndex );
 	    }
 	}
@@ -156,7 +157,7 @@ void serialEvent( Serial ser )
 	if ( json == null )
 	{
 	    return;
-	}		
+	}
 
 	// ********************************************************* //
 	// ************* PLOT SETUP FROM CONFIG CODE *************** //
@@ -169,17 +170,17 @@ void serialEvent( Serial ser )
 	    tempCode = Integer.toString( json.getInt( "ng" ) ) + Integer.toString( json.getInt( "lu" ) );
 	    config = true;
 	}
-	
+
 	// If config code has changed, need to go through setup again
 	if ( config && !configCode.equals( tempCode ) )
 	{
 	    lastPortSwitch = millis(); // (likely on the right port, just need to reconfigure graph layout)
-	    
+
 	    // Check for size of full transmission against expected to flag bad transmission
 	    numGraphs = json.getInt( "ng" );
-	    
+
 	    JSONArray jsonGraphs = json.getJSONArray( "g" );
-	    
+
 	    if ( jsonGraphs.size() != numGraphs )
 	    {
 		return;
@@ -187,17 +188,17 @@ void serialEvent( Serial ser )
 
 	    configured = false;
 	    String concatLabels = "";
-	    
+
 	    // Setup new layout
 	    float[][] posGraphs = setupGraphPosition( numGraphs );
-      
+
 	    graphs = new ArrayList<Graph>();
-      
+
 	    // Iterate through the individual graph data blocks to get graph specific info
 	    for ( int i = 0; i < numGraphs; i++ )
 	    {
 		JSONObject g = jsonGraphs.getJSONObject( i );
-		
+
 		String title = g.getString( "t" );
 		boolean xvyTemp = g.getInt( "xvy" ) == 1;
 		int maxPoints = g.getInt( "pd" );
@@ -225,19 +226,19 @@ void serialEvent( Serial ser )
 		{
 		    numVars = 1;
 		}
-		
+
 		// Create new Graph
 		Graph temp = new Graph( this, posGraphs[i][0], posGraphs[i][1], posGraphs[i][2], posGraphs[i][3],
 					xvyTemp, numVars, maxPoints, title, labelsTemp, colorsTemp );
 		graphs.add( temp );
 	    }
-	    
+
 	    // Set new config code
 	    if ( concatLabels.equals( lastLabels ) ) // Only when we're sure on labels
 	    {
 		configCode = tempCode;
 		lastConfig = millis();
-		logMessage( "Configured " + graphs.size() + " graphs", false ); 
+		logMessage( "Configured " + graphs.size() + " graphs", false );
 	    }
 	    lastLabels = concatLabels;
 
@@ -247,12 +248,12 @@ void serialEvent( Serial ser )
 	{
 	    // Matching a code means we have configured correctly
 	    configured = true;
-          
+
 	    // *********************************************************** //
 	    // ************ NORMAL PLOTTING FUNCTIONALITY **************** //
 	    // *********************************************************** //
 	    int tempTime = json.getInt( "t" );
-      
+
 	    JSONArray jsonGraphs = json.getJSONArray( "g" );
 
 	    for ( int i = 0; i < numGraphs; i++ )
@@ -279,7 +280,7 @@ void serialEvent( Serial ser )
 // Helper method to calculate bounds of graphs
 float[][] setupGraphPosition( int numGraphs )
 {
-    // Determine orientation of each graph      
+    // Determine orientation of each graph
     int numHigh = 1;
     int numWide = 1;
     // Increase num subsections in each direction until all graphs can fit
@@ -301,14 +302,14 @@ float[][] setupGraphPosition( int numGraphs )
 	{
 	    // Want to increase in width first
 	    numWide++;
-	}	
+	}
     }
 
     float[][] posGraphs = new float[numGraphs][4];
 
     float subHeight = round( h / numHigh );
     float subWidth = round( w / numWide );
-    
+
     // Set bounding box for each subsection
     for(int i = 0; i < numHigh; i++)
     {
@@ -329,7 +330,7 @@ float[][] setupGraphPosition( int numGraphs )
 }
 
 void attemptConnect( int index )
-{    
+{
     // Attempt connect on specified serial port
     if ( index >= Serial.list().length )
     {
@@ -340,7 +341,7 @@ void attemptConnect( int index )
 
     // Wrap Serial port connect in future to force timeout
     ExecutorService exec = Executors.newSingleThreadExecutor();
-    Future<Serial> future = exec.submit( new ConnectWithTimeout( this, portName, BAUD_RATE ) );    
+    Future<Serial> future = exec.submit( new ConnectWithTimeout( this, portName, BAUD_RATE ) );
 
     try
     {
@@ -349,7 +350,7 @@ void attemptConnect( int index )
 	{
 	    port.stop();
 	}
-	
+
 	// Do connect with timeout
 	port = future.get( CONNECT_TIMEOUT, TimeUnit.MILLISECONDS );
 
@@ -363,7 +364,7 @@ void attemptConnect( int index )
     }
     catch ( Exception e )
     {
-	logMessage( "Exception on connect: " + e.toString(), true );	
+	logMessage( "Exception on connect: " + e.toString(), true );
     }
 
     exec.shutdownNow();
@@ -382,12 +383,12 @@ class ConnectWithTimeout implements Callable<Serial>
 	this.portName = portName;
 	this.baudRate = baud;
     }
-  
+
     @Override
 	public Serial call() throws Exception
     {
 	return new Serial( this.parent, this.portName, baudRate );
-    }     
+    }
 }
 
 // Logger helper
@@ -399,6 +400,3 @@ void logMessage( String message, boolean debugOnly )
 	println( "[Time: " + millis() + " ms]" + "[" + level + "] " + message );
     }
 }
-
-
-		 

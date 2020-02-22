@@ -40,9 +40,9 @@ void setup()
     p.AddTimeGraph( "ESP8266 / NodeMCU ADS1115 Voltmeter", 1500, "A1", a1 );
     p.AddTimeGraph( "ESP8266 / NodeMCU ADS1115 Voltmeter", 1500, "A2", a2);
     p.AddTimeGraph( "ESP8266 / NodeMCU ADS1115 Voltmeter", 1500, "A3", a3 );
-    p.SetColor(1,"cyan");
+    p.SetColor(1,"white");
     p.SetColor(2,"yellow");
-    p.SetColor(3,"orange");
+    p.SetColor(3,"red");
     Wire.begin(SDA_PIN, SCL_PIN);
 
     adc0.initialize(); // initialize ADS1115 16 bit A/D chip
