@@ -162,7 +162,7 @@ class Graph
 	this.parent.textSize( (int)( (this.width + this.height) / 2.0f * TITLE_SZ ) );
 	this.parent.fill( 255 );
 	this.parent.textAlign( this.parent.CENTER, this.parent.TOP );
-	this.parent.text( this.title, this.posX + this.width / 2, this.posY + 10 );
+	this.parent.text( this.title, this.posX + this.width / 2, this.posY + TOP_MARGIN );
 
 
 	// Calculations for offset and scaling of graph ( vs. time )
@@ -182,7 +182,7 @@ class Graph
 
 
         // Do actual data plotting
-  if ( this.currPoints < this.maxPoints ) // Not yet
+  if ( this.currPoints < 3 ) // Not yet
 
 	for ( int i = 0; i < this.numVars; i++ )
 	{
@@ -242,7 +242,7 @@ this.parent.line( (float)(this.posX + (this.data[j][i][0]*xScale - xOffset)), (f
 	int labelSz = (int) ( (this.width + this.height) / 2.0f * LABEL_SZ );
 
 	// Setup legend start
-	float textPos = this.posY + labelSz;
+	float textPos = this.posY + TOP_MARGIN;
 	this.parent.textAlign( this.parent.RIGHT, this.parent.TOP );
 	this.parent.textSize( labelSz );
 
@@ -250,7 +250,8 @@ this.parent.line( (float)(this.posX + (this.data[j][i][0]*xScale - xOffset)), (f
 	for ( int i = 0; i < this.numVars; i++ )
 	{
 	    this.parent.fill( this.colors[i] );
-	    this.parent.text((this.labels[i] + ": " + Double.toString(this.data[this.index-1][i][1])), this.posX + this.width - 10, textPos);
+      String value = String.format("%+.1fV", this.data[this.index-1][i][1]);
+	    this.parent.text((this.labels[i] + ": " + value), this.posX + this.width - 10, textPos);
 	    textPos += ( labelSz + labelSz/4 );
 	    this.parent.stroke( this.colors[i] );
 	}
@@ -453,4 +454,5 @@ this.parent.line( (float)(this.posX + (this.data[j][i][0]*xScale - xOffset)), (f
     private static final int NUM_TICKS = 5;
     private static final float PT_SZ = 0.0025f;
     private static final int SIG_DIGITS = 3;
+    private static final int TOP_MARGIN = 1;
 }
